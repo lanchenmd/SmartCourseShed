@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field
-from typing import Dict, List, Optional
+from typing import Dict, List, Set, Optional
+
+from scheduler.src.models.schedule import ScheduleInput, ClassInfo, TeacherInfo, RoomInfo, CombinedClass
 
 
 class ScheduleRequest(BaseModel):
@@ -52,3 +54,31 @@ class ScheduleRequest(BaseModel):
             }
         }
     }
+
+    def to_schedule_input(self) -> ScheduleInput:
+        """将请求转换为 ScheduleInput"""
+        combined = [
+            CombinedClass(
+                class_set=cc["class_set"],
+                teacher_id=cc["teacher_id"],
+                subject=cc["subject"],
+                room_type=cc.get("room_type", "普通")
+            ) for cc in self.combined_classes
+        ]
+        special = {k: v for k, v in self.special_rooms.items()}
+        unavail = {
+            k: set(v) for k, v in self.teacher_unavailability.items()
+        }
+        return ScheduleInput(
+            school_id=self.school_id,
+            timeslots=self.timeslots,
+            classes=[ClassInfo(**c) for c in self.classes],
+            teachers=[TeacherInfo(**t) for t in self.teachers],
+            rooms=[RoomInfo(**r) for r in self.rooms],
+            subjects=self.subjects,
+            teacher_of=self.teacher_of,
+            required_hours=self.required_hours,
+            combined_classes=combined,
+            special_rooms=special,
+            teacher_unavailability=unavail
+        )
