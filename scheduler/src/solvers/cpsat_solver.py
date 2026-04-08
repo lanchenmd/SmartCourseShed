@@ -57,7 +57,11 @@ class CPSatSolver:
         add_room_conflict_constraint(self.model, self.x, self.input_data)
         add_class_conflict_constraint(self.model, self.x, self.input_data)
         add_room_capacity_constraint(self.model, self.x, self.input_data)
-        add_weekly_hours_constraint(self.model, self.x, self.input_data)
+        # L0-06 (weekly_hours) is commented out because the constraint is broken:
+        # The variable x[timeslot, class, room] doesn't encode subject information,
+        # so the constraint sums ALL hours per class instead of per-subject hours.
+        # This makes the constraint always conflict with L0-04 (class_conflict).
+        # add_weekly_hours_constraint(self.model, self.x, self.input_data)
 
         # 合班约束需要特殊处理（CombinedClass 对象作为字典 key 需要可哈希）
         if self.input_data.combined_classes:
