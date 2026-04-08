@@ -1,0 +1,8 @@
+# scheduler/requirements.txt
+ortools>=9.10
+pydantic>=2.0
+fastapi>=0.110
+uvicorn>=0.27
+pytest>=8.0
+pytest-asyncio>=0.23.0
+httpx>=0.27.0

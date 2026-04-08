@@ -1,0 +1,19 @@
+# scheduler/docker-compose.yml
+version: '3.8'
+
+services:
+  scheduler:
+    build: .
+    ports:
+      - "8001:8001"
+    environment:
+      - PYTHONPATH=/app
+    volumes:
+      - ./src:/app/src
+      - ./benchmark:/app/benchmark
+    networks:
+      - scheduler-network
+
+networks:
+  scheduler-network:
+    driver: bridge
