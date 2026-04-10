@@ -74,14 +74,21 @@ def add_teacher_conflict_constraint(
                         # is_s = 0 ⟹ s != subj_idx
                         model.Add(s_var != subj_idx).OnlyEnforceIf(is_s.Not())
 
-                        # 步骤3: is_active = is_x AND is_s
+                        # 步骤3: is_active = is_x AND is_s_match (正确的双向等价)
+                        # CP-SAT OnlyEnforceIf: model.Add(bool_expr).OnlyEnforceIf(b) means
+                        # "when b==1, bool_expr must hold". For BoolVar, Add(bool_var) means bool_var==1.
+                        # We need:
+                        #   is_active = 1 ⟹ is_x = 1 AND is_s_match = 1
+                        #   is_x = 1 AND is_s_match = 1 ⟹ is_active = 1
                         is_active = model.NewBoolVar(
                             f"ta_{teacher_id}_{timeslot}_{cls.id}_{room.id}_{subj_idx}"
                         )
+                        # Forward: is_active = 1 ⟹ is_x = 1 AND is_s = 1
+                        model.Add(is_x == 1).OnlyEnforceIf(is_active)
+                        model.Add(is_s == 1).OnlyEnforceIf(is_active)
+                        # Backward: is_x = 1 AND is_s = 1 ⟹ is_active = 1
                         model.Add(is_active == 1).OnlyEnforceIf(is_x)
                         model.Add(is_active == 1).OnlyEnforceIf(is_s)
-                        model.Add(is_active == 0).OnlyEnforceIf(is_x.Not())
-                        model.Add(is_active == 0).OnlyEnforceIf(is_s.Not())
 
                         all_active.append(is_active)
 

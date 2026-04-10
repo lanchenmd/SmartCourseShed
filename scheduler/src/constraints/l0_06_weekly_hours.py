@@ -2,8 +2,7 @@
 L0-06: 班级周课时精确达标
 每个班级/科目必须达到规定的每周精确课时数（等式 ==，非 >=）
 
-修复说明 (v4): 完全重新设计，使用简单的 is_this_subject = is_x AND is_s_match
-通过标准的 CP-SAT bool-and 实现：is_this = is_x AND is_s
+修复说明 (v6): 使用线性约束实现 AND 逻辑，约束方向正确。
 """
 from ortools.sat.python import cp_model
 from scheduler.src.models.schedule import ScheduleInput
@@ -21,10 +20,13 @@ def add_weekly_hours_constraint(
     """
     添加 L0-06 班级周课时精确达标约束。
 
-    实现策略:
-    1. is_x = x (BoolVar)
-    2. is_s_match = (s == subj_idx) 通过等价约束
-    3. is_this_subject = is_x AND is_s_match 通过标准布尔与
+    实现：对于每条 x[ts,cls,room] = 1 的记录，统计该班级该时段是否上指定科目。
+    使用线性约束实现 AND: is_this = is_x AND (s == subj_idx)
+    - is_this <= is_x
+    - is_this <= is_s_match
+    - is_this >= is_x + is_s_match - 1
+    - is_x = x
+    - is_s_match = 1 iff s == subj_idx via equivalence
     """
     for cls in input_data.classes:
         for subject, required in input_data.required_hours.get(cls.id, {}).items():
@@ -43,7 +45,7 @@ def add_weekly_hours_constraint(
                     if x_var is None:
                         continue
 
-                    # Step 1: is_x = (x == 1)
+                    # Step 1: is_x = x
                     is_x = model.NewBoolVar(
                         f"hx_{cls.id}_{subject}_{timeslot}_{room.id}"
                     )
@@ -51,24 +53,22 @@ def add_weekly_hours_constraint(
                     model.Add(is_x == 0).OnlyEnforceIf(x_var.Not())
 
                     # Step 2: is_s_match = (s == subj_idx) via equivalence
-                    # is_s_match = 1 ⟺ s == subj_idx
                     is_s_match = model.NewBoolVar(
                         f"hs_{cls.id}_{subject}_{timeslot}_{room.id}"
                     )
                     model.Add(s_var == subj_idx).OnlyEnforceIf(is_s_match)
                     model.Add(s_var != subj_idx).OnlyEnforceIf(is_s_match.Not())
 
-                    # Step 3: is_this = is_x AND is_s_match
-                    # Standard bool-AND implementation using CP-SAT implications
+                    # Step 3: is_this = is_x AND is_s_match via linear constraints
                     is_this = model.NewBoolVar(
                         f"ha_{cls.id}_{subject}_{timeslot}_{room.id}"
                     )
-                    # Forward: is_this = 1 ⟹ is_x = 1 AND is_s_match = 1
-                    model.Add(is_x == 1).OnlyEnforceIf(is_this)
-                    model.Add(is_s_match == 1).OnlyEnforceIf(is_this)
-                    # Backward: is_x = 1 AND is_s_match = 1 ⟹ is_this = 1
-                    model.Add(is_this == 1).OnlyEnforceIf(is_x)
-                    model.Add(is_this == 1).OnlyEnforceIf(is_s_match)
+                    # is_this <= is_x (if is_x=0 then is_this=0)
+                    model.Add(is_this <= is_x)
+                    # is_this <= is_s_match (if is_s_match=0 then is_this=0)
+                    model.Add(is_this <= is_s_match)
+                    # is_this >= is_x + is_s_match - 1 (if both=1 then is_this>=1, so is_this=1)
+                    model.Add(is_this >= is_x + is_s_match - 1)
 
                     subject_hours.append(is_this)
 

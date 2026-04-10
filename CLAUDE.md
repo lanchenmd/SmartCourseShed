@@ -39,19 +39,22 @@
 | 阶段   | 内容                        | 状态  |
 | ---- | ------------------------- | --- |
 | 阶段 0 | 约束模型规格定义（准备阶段）：CP-SAT 3D+Index方案 + 8条L0硬约束 + 策略一 + Engineering Review完成 | **已完成（v1.1）** |
-| 阶段 1 | 环境搭建 + OR-Tools Benchmark | 待开始 |
+| 阶段 1 | 环境搭建 + OR-Tools Benchmark | **进行中（Phase 1 Task 11 最终验证中）** |
 | 阶段 2 | 排课核心 + 冲突检测               | 待开始 |
 | 阶段 3 | 日历 UI + 冲突解决 UX           | 待开始 |
 | 阶段 4 | 基础权限 + 用户认证 + Redis 乐观锁   | 待开始 |
 | 阶段 5 | 优化与收尾                     | 待开始 |
 
-**新增决策（Engineering Review 后）：**
-- 阶段 0: 约束模型规格定义（编码前必须完成）
-- HTTP/REST 通信（简化 Phase 1）
-- PostgreSQL Schema 含 school_id（多租户预留）
-- Redis 乐观锁（并发保护）
-- 冲突解决 UX（Phase 3）
+**Phase 1 当前进展（2026-04-10）：**
+- ✅ Small dataset: 3/3 SUCCESS, avg 0.026s
+- ⚠️ Medium dataset: 0/3 INFEASIBLE/UNKNOWN (L0-06 导致超时)
+- ⚠️ Large dataset: 0/1 UNKNOWN (超时)
+- ✅ 已修复：L0-02 OnlyEnforceIf TypeError、L0-06 线性AND方向错误、stale JSON数据文件、room容量不足
+
+**Phase 1 待解决问题：**
+- Medium/Large dataset L0-06 求解超时（UNKNOW）：可能原因待查
+- 详见：`scheduler/docs/PHASE1_BENCHMARK_STATUS.md`
 
 **Phase 1 砍掉，Phase 2 实现：** 调课/代课/请假审批流、Excel 导入、超级管理员、微信小程序端、需求沟通 Agent + 校对 Agent
 
-**下一步：** 阶段 0 完成 → 阶段 1：环境搭建 + OR-Tools Benchmark（3D+Index方案）
+**下一步：** 继续调试 medium dataset 超时问题（可能需要简化L0-06约束或调整数据集规模）

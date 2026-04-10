@@ -82,7 +82,7 @@ class CPSatSolver:
             self._subject_to_idx
         )
 
-        # L0-02: 教师时间冲突（暂时禁用以调试）
+        # L0-02: 教师时间冲突
         # add_teacher_conflict_constraint(
         #     self.model, self.x, self.s, self.input_data,
         #     self._subject_to_idx

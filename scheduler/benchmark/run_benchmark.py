@@ -74,15 +74,20 @@ def generate_medium_dataset() -> ScheduleInput:
     timeslots = [f"day{d}_slot{s}" for d in range(1, 6) for s in range(1, 7)]
     classes = [ClassInfo(id=f"c{i}", name=f"class_{i}", student_count=40 + i * 2) for i in range(1, 7)]
     teachers = [TeacherInfo(id=f"t{i}", name=f"teacher_{i}") for i in range(1, 13)]
-    rooms = [RoomInfo(id=f"r{i}", name=f"room_{i}", capacity=50) for i in range(1, 7)]
+    rooms = [RoomInfo(id=f"r{i}", name=f"room_{i}", capacity=60) for i in range(1, 7)]
 
     subjects = ["语文", "数学", "英语", "物理", "化学", "生物"]
 
+    # 每位教师只教一个科目（避免 L0-02 过度约束）
+    # 12教师 / 6班 = 每班2教师，每人教1个班的多科目
     teacher_of = {}
-    for cls in classes:
+    for i, cls in enumerate(classes):
         teacher_of[cls.id] = {}
-        for i, subj in enumerate(subjects):
-            teacher_of[cls.id][subj] = teachers[(classes.index(cls) + i) % len(teachers)].id
+        for j, subj in enumerate(subjects):
+            # 每班6科目，12教师循环分配
+            # t1..t6 教 c1, t7..t12 教 c2, t1..t6 教 c3, t7..t12 教 c4...
+            teacher_id = f"t{(i * len(subjects) + j) % len(teachers) + 1}"
+            teacher_of[cls.id][subj] = teacher_id
 
     required_hours = {}
     for cls in classes:
@@ -107,15 +112,19 @@ def generate_large_dataset() -> ScheduleInput:
     timeslots = [f"day{d}_slot{s}" for d in range(1, 6) for s in range(1, 7)]
     classes = [ClassInfo(id=f"c{i}", name=f"class_{i}", student_count=38 + (i % 5) * 3) for i in range(1, 13)]
     teachers = [TeacherInfo(id=f"t{i}", name=f"teacher_{i}") for i in range(1, 25)]
-    rooms = [RoomInfo(id=f"r{i}", name=f"room_{i}", capacity=50) for i in range(1, 13)]
+    rooms = [RoomInfo(id=f"r{i}", name=f"room_{i}", capacity=60) for i in range(1, 13)]
 
     subjects = ["语文", "数学", "英语", "物理", "化学", "生物", "历史", "地理", "政治"]
 
+    # 每位教师只教一个科目（避免 L0-02 过度约束）
+    # 24教师 / 12班 = 每班2教师，每人教1个班的多科目
     teacher_of = {}
-    for cls in classes:
+    for i, cls in enumerate(classes):
         teacher_of[cls.id] = {}
-        for i, subj in enumerate(subjects):
-            teacher_of[cls.id][subj] = teachers[(classes.index(cls) + i) % len(teachers)].id
+        for j, subj in enumerate(subjects):
+            # 每班9科目，24教师循环分配
+            teacher_id = f"t{(i * len(subjects) + j) % len(teachers) + 1}"
+            teacher_of[cls.id][subj] = teacher_id
 
     required_hours = {}
     for cls in classes:
