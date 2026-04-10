@@ -10,7 +10,9 @@ from scheduler.src.models.schedule import ScheduleInput
 def add_room_capacity_constraint(
     model: cp_model.CpModel,
     x: dict,
-    input_data: ScheduleInput
+    input_data: ScheduleInput,
+    s: dict = None,
+    subject_to_idx: dict = None
 ) -> None:
     """
     添加 L0-05 教室容量约束。

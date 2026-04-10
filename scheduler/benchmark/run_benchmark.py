@@ -52,9 +52,9 @@ def generate_small_dataset() -> ScheduleInput:
     }
 
     required_hours = {
-        "c1": {"语文": 2, "数学": 2, "英语": 1},
-        "c2": {"语文": 2, "数学": 2, "英语": 1},
-        "c3": {"语文": 2, "数学": 2, "英语": 1},
+        "c1": {"语文": 3, "数学": 3, "英语": 3},
+        "c2": {"语文": 3, "数学": 3, "英语": 3},
+        "c3": {"语文": 3, "数学": 3, "英语": 3},
     }
 
     return ScheduleInput(
@@ -169,7 +169,7 @@ def run_single_benchmark(input_data: ScheduleInput, timeout: int) -> dict:
 
     # Calculate assignment rate
     total_slots_needed = sum(sum(hours.values()) for hours in input_data.required_hours.values())
-    total_slots_assigned = sum(len(class_schedule) for class_schedule in result.schedule.values())
+    total_slots_assigned = len(result.schedule)  # result.schedule is List[Dict]
     assignment_rate = total_slots_assigned / total_slots_needed if total_slots_needed > 0 else 0
 
     return {
@@ -181,7 +181,7 @@ def run_single_benchmark(input_data: ScheduleInput, timeout: int) -> dict:
         "num_branches": result.solver_stats.get("num_branches", 0),
         "num_conflicts": result.solver_stats.get("num_conflicts", 0),
         "assignment_rate": assignment_rate,
-        "unassigned_count": len(result.unassigned),
+        "total_slots_assigned": total_slots_assigned,
     }
 
 

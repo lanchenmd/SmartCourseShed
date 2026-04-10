@@ -11,7 +11,9 @@ from scheduler.src.models.schedule import ScheduleInput
 def add_special_room_constraint(
     model: cp_model.CpModel,
     x: dict,
-    input_data: ScheduleInput
+    input_data: ScheduleInput,
+    s: dict = None,
+    subject_to_idx: dict = None
 ) -> None:
     """
     添加 L0-08 专用教室用途限制约束。

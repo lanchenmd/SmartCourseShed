@@ -10,7 +10,9 @@ from scheduler.src.models.schedule import ScheduleInput
 def add_room_conflict_constraint(
     model: cp_model.CpModel,
     x: dict,
-    input_data: ScheduleInput
+    input_data: ScheduleInput,
+    s: dict = None,  # s[timeslot, class_id] = subject_index (未使用)
+    subject_to_idx: dict = None  # 未使用
 ) -> None:
     """
     添加 L0-03 教室时间冲突约束。

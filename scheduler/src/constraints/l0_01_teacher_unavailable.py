@@ -10,7 +10,9 @@ from scheduler.src.models.schedule import ScheduleInput
 def add_teacher_unavailability_constraint(
     model: cp_model.CpModel,
     x: dict,
-    input_data: ScheduleInput
+    s: dict,  # s[timeslot, class_id] = subject_index (未使用，仅保持API兼容)
+    input_data: ScheduleInput,
+    subject_to_idx: dict = None  # 未使用，仅保持API兼容
 ) -> None:
     """
     添加 L0-01 教师时间不可用约束。

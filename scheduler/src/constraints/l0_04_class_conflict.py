@@ -10,7 +10,9 @@ from scheduler.src.models.schedule import ScheduleInput
 def add_class_conflict_constraint(
     model: cp_model.CpModel,
     x: dict,
-    input_data: ScheduleInput
+    input_data: ScheduleInput,
+    s: dict = None,  # s[timeslot, class_id] = subject_index
+    subject_to_idx: dict = None
 ) -> None:
     """
     添加 L0-04 班级时间冲突约束。
