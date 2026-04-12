@@ -39,22 +39,29 @@
 | 阶段   | 内容                        | 状态  |
 | ---- | ------------------------- | --- |
 | 阶段 0 | 约束模型规格定义（准备阶段）：CP-SAT 3D+Index方案 + 8条L0硬约束 + 策略一 + Engineering Review完成 | **已完成（v1.1）** |
-| 阶段 1 | 环境搭建 + OR-Tools Benchmark | **进行中（Phase 1 Task 11 最终验证中）** |
+| 阶段 1 | 环境搭建 + OR-Tools Benchmark | **✅ 已完成** |
 | 阶段 2 | 排课核心 + 冲突检测               | 待开始 |
 | 阶段 3 | 日历 UI + 冲突解决 UX           | 待开始 |
 | 阶段 4 | 基础权限 + 用户认证 + Redis 乐观锁   | 待开始 |
 | 阶段 5 | 优化与收尾                     | 待开始 |
 
-**Phase 1 当前进展（2026-04-10）：**
-- ✅ Small dataset: 3/3 SUCCESS, avg 0.026s
-- ⚠️ Medium dataset: 0/3 INFEASIBLE/UNKNOWN (L0-06 导致超时)
-- ⚠️ Large dataset: 0/1 UNKNOWN (超时)
-- ✅ 已修复：L0-02 OnlyEnforceIf TypeError、L0-06 线性AND方向错误、stale JSON数据文件、room容量不足
+**Phase 1 最终结果（2026-04-11）：**
+- ✅ Small dataset: 3/3 SUCCESS, avg 0.037s
+- ✅ Medium dataset: 5/5 SUCCESS, avg 1.878s (验收标准: ≤25s, ≥80%) ✅ **大幅超越**
+- ✅ Large dataset: 3/3 SUCCESS, avg 6.761s
 
-**Phase 1 待解决问题：**
-- Medium/Large dataset L0-06 求解超时（UNKNOW）：可能原因待查
-- 详见：`scheduler/docs/PHASE1_BENCHMARK_STATUS.md`
+**Phase 1 已解决问题：**
+- L0-02 OnlyEnforceIf TypeError：改用 3-step BoolVar 桥接
+- L0-06 线性AND方向错误：改为正确的不等式方向
+- run_benchmark.py 数据不一致（核心）：required_hours 总和调整为 = timeslots
+- Stale JSON 数据文件：每次运行重新生成
+- Room 容量不足：capacity 50 → 60
 
 **Phase 1 砍掉，Phase 2 实现：** 调课/代课/请假审批流、Excel 导入、超级管理员、微信小程序端、需求沟通 Agent + 校对 Agent
 
-**下一步：** 继续调试 medium dataset 超时问题（可能需要简化L0-06约束或调整数据集规模）
+**下一步：** 进入 Phase 2 — 排课核心 + 冲突检测
+
+**Phase 1 文档：**
+- `scheduler/docs/PHASE1_BENCHMARK_STATUS.md` — Benchmark 状态报告
+- `scheduler/docs/PHASE1_LESSONS_LEARNED.md` — 踩坑总结
+- `scheduler/docs/PHASE1_TESTING_GUIDE.md` — 测试指南

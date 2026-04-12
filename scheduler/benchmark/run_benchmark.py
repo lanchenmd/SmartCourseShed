@@ -79,20 +79,21 @@ def generate_medium_dataset() -> ScheduleInput:
     subjects = ["语文", "数学", "英语", "物理", "化学", "生物"]
 
     # 每位教师只教一个科目（避免 L0-02 过度约束）
-    # 12教师 / 6班 = 每班2教师，每人教1个班的多科目
+    # 6教师对应6科目: t1=语文, t2=数学, t3=英语, t4=物理, t5=化学, t6=生物
+    # 每个教师教所有班级
     teacher_of = {}
-    for i, cls in enumerate(classes):
+    for cls in classes:
         teacher_of[cls.id] = {}
-        for j, subj in enumerate(subjects):
-            # 每班6科目，12教师循环分配
-            # t1..t6 教 c1, t7..t12 教 c2, t1..t6 教 c3, t7..t12 教 c4...
-            teacher_id = f"t{(i * len(subjects) + j) % len(teachers) + 1}"
-            teacher_of[cls.id][subj] = teacher_id
+        for i, subj in enumerate(subjects):
+            teacher_of[cls.id][subj] = teachers[i].id
 
+    # 关键修复: required_hours 总和 = 30 (等于可用 timeslots)
+    # 均匀分布: 5+5+5+5+5+5 = 30
     required_hours = {}
     for cls in classes:
         required_hours[cls.id] = {
-            "语文": 4, "数学": 4, "英语": 3, "物理": 3, "化学": 2, "生物": 2
+            "语文": 5, "数学": 5, "英语": 5,
+            "物理": 5, "化学": 5, "生物": 5
         }
 
     return ScheduleInput(
@@ -117,20 +118,23 @@ def generate_large_dataset() -> ScheduleInput:
     subjects = ["语文", "数学", "英语", "物理", "化学", "生物", "历史", "地理", "政治"]
 
     # 每位教师只教一个科目（避免 L0-02 过度约束）
-    # 24教师 / 12班 = 每班2教师，每人教1个班的多科目
+    # 9教师对应9科目: t1=语文, t2=数学, t3=英语, t4=物理, t5=化学, t6=生物, t7=历史, t8=地理, t9=政治
+    # 每个教师教所有班级
     teacher_of = {}
-    for i, cls in enumerate(classes):
+    for cls in classes:
         teacher_of[cls.id] = {}
-        for j, subj in enumerate(subjects):
-            # 每班9科目，24教师循环分配
-            teacher_id = f"t{(i * len(subjects) + j) % len(teachers) + 1}"
-            teacher_of[cls.id][subj] = teacher_id
+        for i, subj in enumerate(subjects):
+            teacher_of[cls.id][subj] = teachers[i].id
 
+    # 关键修复: required_hours 总和 = 30 (等于可用 timeslots)
+    # 分布: 语文=4, 数学=4, 英语=4, 物理=3, 化学=3, 生物=3, 历史=3, 地理=3, 政治=3
+    # 总计: 4+4+4+3+3+3+3+3+3 = 30
     required_hours = {}
     for cls in classes:
         required_hours[cls.id] = {
-            "语文": 4, "数学": 4, "英语": 3, "物理": 3,
-            "化学": 2, "生物": 2, "历史": 2, "地理": 1, "政治": 1
+            "语文": 4, "数学": 4, "英语": 4,
+            "物理": 3, "化学": 3, "生物": 3,
+            "历史": 3, "地理": 3, "政治": 3
         }
 
     return ScheduleInput(
