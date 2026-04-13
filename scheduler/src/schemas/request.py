@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Dict, List, Set, Optional
+from typing import Dict, List, Literal, Set, Optional
 
 from scheduler.src.models.schedule import ScheduleInput, ClassInfo, TeacherInfo, RoomInfo, CombinedClass
 
@@ -26,6 +26,9 @@ class ScheduleRequest(BaseModel):
     teacher_unavailability: Dict[str, List[str]] = Field(
         default={}, description="教师不可用时段：{teacher_id: [timeslot_list]}"
     )
+    mode: Literal["full", "incremental", "auto-fill"] = Field(default="full", description="排课模式: full | incremental | auto-fill")
+    fixed_assignments: List[dict] = Field(default=[], description="auto-fill 模式固定课程列表")
+    existing_assignments: List[dict] = Field(default=[], description="incremental 模式保留的已有课程")
 
     model_config = {
         "json_schema_extra": {
