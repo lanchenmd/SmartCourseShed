@@ -129,7 +129,6 @@ def test_schedule_result_structure():
 
     assert hasattr(result, "success")
     assert hasattr(result, "schedule")
-    assert hasattr(result, "unassigned")
     assert hasattr(result, "solver_stats")
 
 

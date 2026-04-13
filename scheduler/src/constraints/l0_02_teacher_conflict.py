@@ -2,12 +2,7 @@
 L0-02: 教师时间冲突
 同一教师在同一时段只能安排一节课（跨年级、跨班级均禁止）
 同一教师同时段教多个班级（即使同一科目）也算多节课，均禁止
-CP-SAT: AddLinearConstraint(sum <= 1)
-
-修复说明 (v3): 使用中间 BoolVar 桥接线性表达式 OnlyEnforceIf 的 API 限制。
-
-关键: CP-SAT OnlyEnforceIf 只接受 BoolVar，不接受 BoundedLinearExpression。
-我们创建中间变量 is_s_match = (s == subj_idx)，通过等价约束建立关系。
+CP-SAT: 3-step BoolVar 桥接实现 AND 逻辑（与 L0-06 一致）
 """
 from ortools.sat.python import cp_model
 from scheduler.src.models.schedule import ScheduleInput
@@ -25,7 +20,12 @@ def add_teacher_conflict_constraint(
     添加 L0-02 教师时间冲突约束。
 
     对于每个教师 T 和每个时间槽 ts：
-    sum over all (class, room) where teacher T teaches subject s[ts,class] to class: x <= 1
+    sum over all (class, room, subject) where teacher T teaches subject s[ts,class]: x <= 1
+
+    使用 3-step BoolVar 桥接实现 AND 逻辑（参照 L0-06）：
+    - is_x = x（该教室被该班级占用）
+    - is_s_match = (s == subj_idx)（该时段该班级恰好上这位老师的课）
+    - is_active = is_x AND is_s_match（该教师在该时段有课）
     """
     # 反向索引: class -> {subject_idx: teacher_id}
     class_subject_teacher: Dict[str, Dict[int, str]] = {}
@@ -55,40 +55,27 @@ def add_teacher_conflict_constraint(
                         if tid != teacher_id:
                             continue
 
-                        # 步骤1: is_x = x_var (教室被占用)
+                        # Step 1: is_x = x
                         is_x = model.NewBoolVar(
                             f"tx_{teacher_id}_{timeslot}_{cls.id}_{room.id}_{subj_idx}"
                         )
                         model.Add(is_x == 1).OnlyEnforceIf(x_var)
                         model.Add(is_x == 0).OnlyEnforceIf(x_var.Not())
 
-                        # 步骤2: is_s = (s == subj_idx) 通过等价约束建立
-                        # CP-SAT OnlyEnforceIf semantics:
-                        # - Add(expr).OnlyEnforceIf(b): when b=1, expr must hold; when b=0, expr is ignored
-                        # 双向等价: is_s=1 ⟺ s==subj_idx
-                        is_s = model.NewBoolVar(
+                        # Step 2: is_s_match = (s == subj_idx)
+                        is_s_match = model.NewBoolVar(
                             f"ts_{teacher_id}_{timeslot}_{cls.id}_{room.id}_{subj_idx}"
                         )
-                        # is_s = 1 ⟹ s == subj_idx
-                        model.Add(s_var == subj_idx).OnlyEnforceIf(is_s)
-                        # is_s = 0 ⟹ s != subj_idx
-                        model.Add(s_var != subj_idx).OnlyEnforceIf(is_s.Not())
+                        model.Add(s_var == subj_idx).OnlyEnforceIf(is_s_match)
+                        model.Add(s_var != subj_idx).OnlyEnforceIf(is_s_match.Not())
 
-                        # 步骤3: is_active = is_x AND is_s_match (正确的双向等价)
-                        # CP-SAT OnlyEnforceIf: model.Add(bool_expr).OnlyEnforceIf(b) means
-                        # "when b==1, bool_expr must hold". For BoolVar, Add(bool_var) means bool_var==1.
-                        # We need:
-                        #   is_active = 1 ⟹ is_x = 1 AND is_s_match = 1
-                        #   is_x = 1 AND is_s_match = 1 ⟹ is_active = 1
+                        # Step 3: is_active = is_x AND is_s_match（线性约束实现 AND）
                         is_active = model.NewBoolVar(
                             f"ta_{teacher_id}_{timeslot}_{cls.id}_{room.id}_{subj_idx}"
                         )
-                        # Forward: is_active = 1 ⟹ is_x = 1 AND is_s = 1
-                        model.Add(is_x == 1).OnlyEnforceIf(is_active)
-                        model.Add(is_s == 1).OnlyEnforceIf(is_active)
-                        # Backward: is_x = 1 AND is_s = 1 ⟹ is_active = 1
-                        model.Add(is_active == 1).OnlyEnforceIf(is_x)
-                        model.Add(is_active == 1).OnlyEnforceIf(is_s)
+                        model.Add(is_active <= is_x)
+                        model.Add(is_active <= is_s_match)
+                        model.Add(is_active >= is_x + is_s_match - 1)
 
                         all_active.append(is_active)
 
