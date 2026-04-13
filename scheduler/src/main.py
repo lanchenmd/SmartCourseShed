@@ -9,6 +9,7 @@ from scheduler.src.schemas.request import ScheduleRequest
 from scheduler.src.schemas.response import ScheduleResponse, ScheduleEntry, ScheduleStats, ConflictItem
 from scheduler.src.models.schedule import ScheduleInput, ClassInfo, TeacherInfo, RoomInfo, CombinedClass
 from scheduler.src.solvers.cpsat_solver import CPSatSolver
+from scheduler.src.constraints.conflict_checker import check_conflicts
 
 
 app = FastAPI(
@@ -84,6 +85,101 @@ def generate_schedule(request: ScheduleRequest) -> ScheduleResponse:
         return build_response(result, solve_time_ms)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/v1/schedule/check-conflict")
+def check_conflict(request: dict):
+    """冲突检测 — 复用 CPSatSolver 约束验证"""
+    input_data = ScheduleInput(
+        school_id=request["school_id"],
+        timeslots=request.get("timeslots", []),
+        classes=[ClassInfo(**c) for c in request.get("classes", [])],
+        teachers=[TeacherInfo(**t) for t in request.get("teachers", [])],
+        rooms=[RoomInfo(**r) for r in request.get("rooms", [])],
+        subjects=request.get("subjects", []),
+        teacher_of=request.get("teacher_of", {}),
+        required_hours=request.get("required_hours", {}),
+        combined_classes=request.get("combined_classes", []),
+        special_rooms=request.get("special_rooms", {}),
+        teacher_unavailability={k: set(v) for k, v in request.get("teacher_unavailability", {}).items()}
+    )
+
+    conflicts = check_conflicts(input_data, request.get("assignments", []))
+    return {
+        "status": "CONFLICT" if conflicts else "SUCCESS",
+        "conflicts": conflicts,
+        "score": None
+    }
+
+
+@app.get("/api/v1/schedule/modes")
+def get_modes():
+    """返回三种排课模式说明"""
+    return {
+        "modes": [
+            {"id": "full", "name": "全量排课", "description": "清空现有课表，从头生成完整课表"},
+            {"id": "incremental", "name": "增量排课", "description": "保留已有课程，只排空缺槽"},
+            {"id": "auto-fill", "name": "手动+自动填充", "description": "固定手动课程，自动填补剩余"}
+        ]
+    }
+
+
+@app.post("/api/v1/schedule/score")
+def score_schedule(request: dict):
+    """满意度评分 — Phase 1 返回固定基础分"""
+    assignments = request.get("assignments", [])
+    threshold = request.get("threshold", 60)
+
+    if request.get("school_id"):
+        input_data = ScheduleInput(
+            school_id=request["school_id"],
+            timeslots=request.get("timeslots", []),
+            classes=[ClassInfo(**c) for c in request.get("classes", [])],
+            teachers=[TeacherInfo(**t) for t in request.get("teachers", [])],
+            rooms=[RoomInfo(**r) for r in request.get("rooms", [])],
+            subjects=request.get("subjects", []),
+            teacher_of=request.get("teacher_of", {}),
+            required_hours=request.get("required_hours", {}),
+            combined_classes=request.get("combined_classes", []),
+            special_rooms=request.get("special_rooms", {}),
+            teacher_unavailability={k: set(v) for k, v in request.get("teacher_unavailability", {}).items()}
+        )
+        conflicts = check_conflicts(input_data, assignments)
+        score = 0 if conflicts else 60
+    else:
+        score = 60
+
+    return {
+        "score": score,
+        "breakdown": {"hard_constraints": score, "teacher_preference": 0, "distribution": 0},
+        "threshold": threshold,
+        "blocked": (score < threshold)
+    }
+
+
+@app.post("/api/v1/schedule/validate")
+def validate_schedule(request: dict):
+    """课表完整性校验"""
+    assignments = request.get("assignments", [])
+    required_hours = request.get("required_hours", {})
+
+    class_hours = {}
+    for a in assignments:
+        cid = a.get("class_id")
+        if cid:
+            class_hours[cid] = class_hours.get(cid, 0) + 1
+
+    missing = []
+    for cid, hours in required_hours.items():
+        total_required = sum(hours.values()) if isinstance(hours, dict) else 0
+        actual = class_hours.get(cid, 0)
+        if actual < total_required:
+            missing.append({"class_id": cid, "expected": total_required, "actual": actual})
+
+    return {
+        "status": "VALID" if not missing else "INCOMPLETE",
+        "missing": missing
+    }
 
 
 @app.get("/health")
