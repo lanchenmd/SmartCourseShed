@@ -21,14 +21,14 @@
 设计基线包含：
 
 - MVP 术语表（冲突定义、满意度评分、可接受课表标准）
-- 角色权限映射（管理员/普通用户两级，Phase 2 实现超级管理员（Phase 1 砍掉））
-- 调课/代课/请假流程（Phase 2 实现）
+- 角色权限映射（管理员/普通用户两级，节点2实现超级管理员（节点1砍掉））
+- 调课/代课/请假流程（节点2实现）
 - 三个关键前提（P1/P2/P3）
 - 差异化定位（极致冲突检测 + 超快排课速度）
 
 **记忆体系：** `~/.claude/projects/-Users-chenlan-Desktop-SmartCourseShed/memory/`
 
-- 项目概述、技术栈、阶段划分
+- 项目概述、技术栈、节点划分
 - 设计基线摘要
 - 市场需求与用户画像
 
@@ -36,32 +36,56 @@
 
 ## 实施计划摘要
 
-| 阶段   | 内容                        | 状态  |
-| ---- | ------------------------- | --- |
-| 阶段 0 | 约束模型规格定义（准备阶段）：CP-SAT 3D+Index方案 + 8条L0硬约束 + 策略一 + Engineering Review完成 | **已完成（v1.1）** |
-| 阶段 1 | 环境搭建 + OR-Tools Benchmark | **✅ 已完成** |
-| 阶段 2 | 排课核心 + 冲突检测               | 待开始 |
-| 阶段 3 | 日历 UI + 冲突解决 UX           | 待开始 |
-| 阶段 4 | 基础权限 + 用户认证 + Redis 乐观锁   | 待开始 |
-| 阶段 5 | 优化与收尾                     | 待开始 |
 
-**Phase 1 最终结果（2026-04-11）：**
-- ✅ Small dataset: 3/3 SUCCESS, avg 0.037s
-- ✅ Medium dataset: 5/5 SUCCESS, avg 1.878s (验收标准: ≤25s, ≥80%) ✅ **大幅超越**
-- ✅ Large dataset: 3/3 SUCCESS, avg 6.761s
+| 节点   | 内容                                                                      | 状态            |
+| ---- | ----------------------------------------------------------------------- | ------------- |
+| 节点 0 | 约束模型规格定义（准备节点）：CP-SAT 3D+Index方案 + 8条L0硬约束 + 策略一 + Engineering Review完成 | **已完成（v1.1）** |
+| 节点 1 | 环境搭建 + OR-Tools Benchmark                                               | **✅ 已完成**     |
+| 节点 2 | 排课核心 + 冲突检测                                                             | 待开始           |
+| 节点 3 | 日历 UI + 冲突解决 UX                                                         | 待开始           |
+| 节点 4 | 基础权限 + 用户认证 + Redis 乐观锁                                                 | 待开始           |
+| 节点 5 | 优化与收尾                                                                   | 待开始           |
 
-**Phase 1 已解决问题：**
+
+**节点1 已解决问题：**
+
 - L0-02 OnlyEnforceIf TypeError：改用 3-step BoolVar 桥接
 - L0-06 线性AND方向错误：改为正确的不等式方向
 - run_benchmark.py 数据不一致（核心）：required_hours 总和调整为 = timeslots
 - Stale JSON 数据文件：每次运行重新生成
 - Room 容量不足：capacity 50 → 60
 
-**Phase 1 砍掉，Phase 2 实现：** 调课/代课/请假审批流、Excel 导入、超级管理员、微信小程序端、需求沟通 Agent + 校对 Agent
+**节点1 砍掉，节点2实现：** 调课/代课/请假审批流、Excel 导入、超级管理员、微信小程序端、需求沟通 Agent + 校对 Agent
 
-**下一步：** 进入 Phase 2 — 排课核心 + 冲突检测
+**下一步：** 进入节点2 — 排课核心 + 冲突检测
 
-**Phase 1 文档：**
+**节点1 文档：**
+
 - `scheduler/docs/PHASE1_BENCHMARK_STATUS.md` — Benchmark 状态报告
 - `scheduler/docs/PHASE1_LESSONS_LEARNED.md` — 踩坑总结
 - `scheduler/docs/PHASE1_TESTING_GUIDE.md` — 测试指南
+
+
+## gstack (REQUIRED — global install)
+
+**Before doing ANY work, verify gstack is installed:**
+
+```bash
+test -d ~/.claude/skills/gstack/bin && echo "GSTACK_OK" || echo "GSTACK_MISSING"
+```
+
+If GSTACK_MISSING: STOP. Do not proceed. Tell the user:
+
+> gstack is required for all AI-assisted work in this repo.
+> Install it:
+> ```bash
+> git clone --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack
+> cd ~/.claude/skills/gstack && ./setup --team
+> ```
+> Then restart your AI coding tool.
+
+Do not skip skills, ignore gstack errors, or work around missing gstack.
+
+Using gstack skills: After install, skills like /qa, /ship, /review, /investigate,
+and /browse are available. Use /browse for all web browsing.
+Use ~/.claude/skills/gstack/... for gstack file paths (the global path).
