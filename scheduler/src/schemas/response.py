@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict
 
 
 class ScheduleEntry(BaseModel):
@@ -17,12 +17,20 @@ class ConflictItem(BaseModel):
     teacher_id: Optional[str] = Field(None, description="相关教师ID")
     timeslot: Optional[str] = Field(None, description="相关时间槽")
     room_id: Optional[str] = Field(None, description="相关教室ID")
+    alternatives: List[str] = Field(default=[], description="候选替代时间槽列表")
 
 
 class ScheduleStats(BaseModel):
     solve_time_ms: int = Field(..., description="求解耗时，毫秒")
     hard_constraints_violated: int = Field(default=0, description="硬约束冲突数")
     avg_objective_score: Optional[float] = Field(None, description="目标函数分，Phase 1 始终为 null")
+
+
+class ScoreResponse(BaseModel):
+    score: int = Field(..., ge=0, le=100, description="满意度评分 0-100")
+    breakdown: Dict[str, int] = Field(default={}, description="评分明细")
+    threshold: int = Field(default=60, description="当前阈值")
+    blocked: bool = Field(default=False, description="是否低于阈值被阻止")
 
 
 class ScheduleResponse(BaseModel):
