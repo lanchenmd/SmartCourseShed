@@ -49,3 +49,13 @@ def test_score_endpoint():
     data = response.json()
     assert "score" in data
     assert "blocked" in data
+
+def test_validate_endpoint():
+    response = client.post("/api/v1/schedule/validate", json={
+        "assignments": [{"class_id": "c1", "timeslot": "day1_s1"}],
+        "required_hours": {"c1": {"语文": 2}}
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert "status" in data
+    assert "missing" in data

@@ -22,6 +22,24 @@ app = FastAPI(
 _scheduler: CPSatSolver = None
 
 
+def _build_schedule_input(request: dict) -> ScheduleInput:
+    """Build ScheduleInput from request dict, reusing ScheduleRequest.to_schedule_input()"""
+    req = ScheduleRequest(
+        school_id=request["school_id"],
+        timeslots=request.get("timeslots", []),
+        classes=request.get("classes", []),
+        teachers=request.get("teachers", []),
+        rooms=request.get("rooms", []),
+        subjects=request.get("subjects", []),
+        teacher_of=request.get("teacher_of", {}),
+        required_hours=request.get("required_hours", {}),
+        combined_classes=request.get("combined_classes", []),
+        special_rooms=request.get("special_rooms", {}),
+        teacher_unavailability={k: set(v) for k, v in request.get("teacher_unavailability", {}).items()}
+    )
+    return req.to_schedule_input()
+
+
 @app.on_event("startup")
 def startup():
     pass  # 求解器在请求时按需创建
@@ -90,19 +108,7 @@ def generate_schedule(request: ScheduleRequest) -> ScheduleResponse:
 @app.post("/api/v1/schedule/check-conflict")
 def check_conflict(request: dict):
     """冲突检测 — 复用 CPSatSolver 约束验证"""
-    input_data = ScheduleInput(
-        school_id=request["school_id"],
-        timeslots=request.get("timeslots", []),
-        classes=[ClassInfo(**c) for c in request.get("classes", [])],
-        teachers=[TeacherInfo(**t) for t in request.get("teachers", [])],
-        rooms=[RoomInfo(**r) for r in request.get("rooms", [])],
-        subjects=request.get("subjects", []),
-        teacher_of=request.get("teacher_of", {}),
-        required_hours=request.get("required_hours", {}),
-        combined_classes=request.get("combined_classes", []),
-        special_rooms=request.get("special_rooms", {}),
-        teacher_unavailability={k: set(v) for k, v in request.get("teacher_unavailability", {}).items()}
-    )
+    input_data = _build_schedule_input(request)
 
     conflicts = check_conflicts(input_data, request.get("assignments", []))
     return {
@@ -131,19 +137,7 @@ def score_schedule(request: dict):
     threshold = request.get("threshold", 60)
 
     if request.get("school_id"):
-        input_data = ScheduleInput(
-            school_id=request["school_id"],
-            timeslots=request.get("timeslots", []),
-            classes=[ClassInfo(**c) for c in request.get("classes", [])],
-            teachers=[TeacherInfo(**t) for t in request.get("teachers", [])],
-            rooms=[RoomInfo(**r) for r in request.get("rooms", [])],
-            subjects=request.get("subjects", []),
-            teacher_of=request.get("teacher_of", {}),
-            required_hours=request.get("required_hours", {}),
-            combined_classes=request.get("combined_classes", []),
-            special_rooms=request.get("special_rooms", {}),
-            teacher_unavailability={k: set(v) for k, v in request.get("teacher_unavailability", {}).items()}
-        )
+        input_data = _build_schedule_input(request)
         conflicts = check_conflicts(input_data, assignments)
         score = 0 if conflicts else 60
     else:
