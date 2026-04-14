@@ -1,4 +1,4 @@
-# SmartCourseShed — 中小学排课 SaaS 系统
+# SmartCourseShed — 中小学排课Agent系统
 
 > 基于 OR-Tools CP-SAT 的智能排课引擎，支持三维冲突检测（教师/教室/班级）、实时冲突提示与替代方案推荐。
 
