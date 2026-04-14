@@ -1,7 +1,13 @@
 # Phase 1 功能介绍与测试指南
 
-**日期：** 2026-04-11
+**日期：** 2026-04-14
 **状态：** ✅ 完成
+
+> ⚠️ **注意：** Phase 1 已完成，节点 2 正在进行中。当前测试应在项目根目录运行：
+> ```bash
+> cd /Users/chenlan/Desktop/SmartCourseShed
+> python -m pytest scheduler/tests/ -v
+> ```
 
 ---
 

@@ -41,7 +41,7 @@
 | ---- | ----------------------------------------------------------------------- | ------------- |
 | 节点 0 | 约束模型规格定义（准备节点）：CP-SAT 3D+Index方案 + 8条L0硬约束 + 策略一 + Engineering Review完成 | **已完成（v1.1）** |
 | 节点 1 | 环境搭建 + OR-Tools Benchmark                                               | **✅ 已完成**     |
-| 节点 2 | 排课核心 + 冲突检测                                                             | 待开始           |
+| 节点 2 | 排课核心 + 冲突检测 + 三种模式 + 满意度评分                                  | **进行中** |
 | 节点 3 | 日历 UI + 冲突解决 UX                                                         | 待开始           |
 | 节点 4 | 基础权限 + 用户认证 + Redis 乐观锁                                                 | 待开始           |
 | 节点 5 | 优化与收尾                                                                   | 待开始           |
@@ -57,13 +57,24 @@
 
 **节点1 砍掉，节点2实现：** 调课/代课/请假审批流、Excel 导入、超级管理员、微信小程序端、需求沟通 Agent + 校对 Agent
 
-**下一步：** 进入节点2 — 排课核心 + 冲突检测
+**节点2 当前状态（2026-04-14）：**
+
+- ✅ 节点2全部功能已完成：31 passed, 0 failed
+- 核心 endpoints 均已实现：`/check-conflict`、`/validate`、`/modes`、`/score`
+- 新增 `conflict_checker.py` 和 `partial_solver.py`
+
+**下一步：** /review → /qa 验收 → 完成节点2
 
 **节点1 文档：**
 
 - `scheduler/docs/PHASE1_BENCHMARK_STATUS.md` — Benchmark 状态报告
 - `scheduler/docs/PHASE1_LESSONS_LEARNED.md` — 踩坑总结
 - `scheduler/docs/PHASE1_TESTING_GUIDE.md` — 测试指南
+
+**节点2 文档：**
+
+- `docs/superpowers/specs/2026-04-13-node2-design.md` — 节点2 设计文档
+- `docs/superpowers/plans/2026-04-13-node2-implementation.md` — 节点2 实施计划
 
 
 ## gstack (REQUIRED — global install)

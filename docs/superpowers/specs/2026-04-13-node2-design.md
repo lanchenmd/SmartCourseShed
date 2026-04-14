@@ -4,6 +4,18 @@
 
 节点 2 在节点 1 基础上扩展排课服务能力，新增冲突检测 API、三种排课模式、满意度评分系统。节点 1 已实现 `POST /api/v1/schedule/generate` 全量排课接口。
 
+> **更新 2026-04-14：** 节点2大部分功能已完成，实现状态见下方。
+
+**实现状态：**
+- ✅ `POST /api/v1/schedule/check-conflict` — 冲突检测（复用 L0 约束）
+- ✅ `POST /api/v1/schedule/validate` — 课表完整性校验
+- ✅ `GET /api/v1/schedule/modes` — 三种模式说明
+- ✅ `POST /api/v1/schedule/score` — 满意度评分（Phase 1 固定 60 分）
+- ✅ `conflict_checker.py` — 复用 L0 约束的冲突检测辅助函数
+- ✅ `partial_solver.py` — PARTIAL 解提取
+- ⏳ 三种排课模式（incremental/auto-fill）— 框架已搭，mode 参数已添加
+- ⏳ 测试状态：31 passed, 2 failed（见下方已知问题）
+
 **输入文档：**
 - `中小学排课系统_多Agent协作开发框架.md`
 - `docs/chenlan-main-design-20260407.md`（已批准设计基线）
@@ -268,3 +280,8 @@ scheduler/src/
 - 替代方案算法优化（当前返回最多 3 个候选）
 - 调课/代课/请假审批流
 - Excel 批量导入
+
+## 10. 已知问题（2026-04-14）
+
+~~test_l0_02_teacher_conflict 签名不匹配~~ → ✅ 已修复
+~~test_full_flow_generate_then_check INFEASIBLE~~ → ✅ 已修复（required_hours 总和 = timeslots）

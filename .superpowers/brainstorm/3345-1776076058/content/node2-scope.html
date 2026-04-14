@@ -1,0 +1,72 @@
+<h2>节点 2 — 排课核心 + 冲突检测</h2>
+<p class="subtitle">确认范围：节点 2 要构建哪些能力</p>
+
+<div class="section">
+<h3>当前系统（节点 1 产出）</h3>
+<div class="mockup">
+<div class="mockup-header">现有架构</div>
+<div class="mockup-body">
+<div style="display:flex; gap:12px; justify-content:center; margin:20px 0;">
+  <div style="text-align:center;">
+    <div style="background:#1a1a2e; color:#fff; padding:12px 20px; border-radius:8px; font-size:14px;">
+      <strong>前端/后端</strong><br/><span style="font-size:12px;opacity:0.7">Node.js + Hono</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; font-size:20px; color:#666;">→</div>
+  <div style="text-align:center;">
+    <div style="background:#0A84B4; color:#fff; padding:12px 20px; border-radius:8px; font-size:14px;">
+      <strong>排课服务</strong><br/><span style="font-size:12px;opacity:0.7">Python + OR-Tools</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; font-size:20px; color:#666;">→</div>
+  <div style="text-align:center;">
+    <div style="background:#333; color:#fff; padding:12px 20px; border-radius:8px; font-size:14px;">
+      <strong>数据库</strong><br/><span style="font-size:12px;opacity:0.7">PostgreSQL</span>
+    </div>
+  </div>
+</div>
+<div style="text-align:center; font-size:12px; color:#666; margin-bottom:10px;">
+  现有接口：POST /api/v1/schedule/generate
+</div>
+</div>
+</div>
+</div>
+
+<div class="section">
+<h3>节点 2 需要新增</h3>
+<div class="options">
+<div class="option" data-choice="a" onclick="toggleSelect(this)">
+<div class="letter">A</div>
+<div class="content">
+<strong>冲突检测 API</strong>
+<p>独立接口，手动排课时实时校验（三维：教师 / 教室 / 班级）</p>
+</div>
+</div>
+<div class="option" data-choice="b" onclick="toggleSelect(this)">
+<div class="letter">B</div>
+<div class="content">
+<strong>三种排课模式</strong>
+<p>全量排课 / 增量排课 / 手动排 + 自动填充</p>
+</div>
+</div>
+<div class="option" data-choice="c" onclick="toggleSelect(this)">
+<div class="letter">C</div>
+<div class="content">
+<strong>满意度评分系统</strong>
+<p>0-100 分数值化软约束满足程度</p>
+</div>
+</div>
+<div class="option" data-choice="d" onclick="toggleSelect(this)">
+<div class="letter">D</div>
+<div class="content">
+<strong>错误处理标准化</strong>
+<p>35s 超时 / 重试 1 次 / partial 状态返回</p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="section">
+<p class="label">确认问题</p>
+<p>以上 4 项（A/B/C/D）都在节点 2 范围内吗？还是需要调整？</p>
+</div>

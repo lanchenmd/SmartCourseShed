@@ -3,6 +3,7 @@ FastAPI HTTP 接口
 Phase 1 简化版本，用于联调验证
 """
 import time
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from scheduler.src.schemas.request import ScheduleRequest
@@ -12,14 +13,19 @@ from scheduler.src.solvers.cpsat_solver import CPSatSolver
 from scheduler.src.constraints.conflict_checker import check_conflicts
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # startup: solver created on-demand per request
+    yield
+    # shutdown: nothing to cleanup
+
+
 app = FastAPI(
     title="排课算法服务",
     description="OR-Tools CP-SAT 排课求解器 HTTP API",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
-
-# 全局求解器实例
-_scheduler: CPSatSolver = None
 
 
 def _build_schedule_input(request: dict) -> ScheduleInput:
@@ -38,11 +44,6 @@ def _build_schedule_input(request: dict) -> ScheduleInput:
         teacher_unavailability={k: set(v) for k, v in request.get("teacher_unavailability", {}).items()}
     )
     return req.to_schedule_input()
-
-
-@app.on_event("startup")
-def startup():
-    pass  # 求解器在请求时按需创建
 
 
 def build_response(schedule_result, solve_time_ms: int) -> ScheduleResponse:

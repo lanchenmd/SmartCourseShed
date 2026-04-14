@@ -38,14 +38,18 @@ def test_l0_02_teacher_conflict():
     input_data = make_medium_input()
     model = cp_model.CpModel()
 
-    # 创建决策变量 x[timeslot, class, room]
+    subject_to_idx = {s: i for i, s in enumerate(input_data.subjects)}
+
+    # 创建决策变量 x[timeslot, class, room] 和 s[timeslot, class]
     x = {}
+    s = {}
     for ts in input_data.timeslots:
         for cls in input_data.classes:
+            s[ts, cls.id] = model.NewIntVar(0, len(input_data.subjects) - 1, f"s_{ts}_{cls.id}")
             for room in input_data.rooms:
                 x[ts, cls.id, room.id] = model.NewBoolVar(f"x_{ts}_{cls.id}_{room.id}")
 
-    add_teacher_conflict_constraint(model, x, input_data)
+    add_teacher_conflict_constraint(model, x, s, input_data, subject_to_idx)
     print("L0-02 constraint added successfully")
 
 

@@ -1,0 +1,87 @@
+<h2>冲突检测：实时检测 + Debounce 流程</h2>
+<p class="subtitle">拖拽课程卡 → 松开后 300ms debounce → API 调用 → 结果展示</p>
+
+<div class="section">
+<h3>交互流程</h3>
+<div style="display:flex; flex-direction:column; gap:16px; padding:20px;">
+
+  <div style="display:flex; align-items:center; gap:16px;">
+    <div style="background:#0A84B4; color:#fff; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; flex-shrink:0;">1</div>
+    <div style="flex:1; background:#f0f4f8; padding:12px 16px; border-radius:8px;">
+      <strong>用户拖拽课程卡</strong>
+      <p style="margin:4px 0 0; font-size:13px; color:#555;">从原位置拖动到新时间槽</p>
+    </div>
+    <div style="width:60px; text-align:center; font-size:20px; color:#888;">→</div>
+  </div>
+
+  <div style="display:flex; align-items:center; gap:16px;">
+    <div style="background:#0A84B4; color:#fff; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; flex-shrink:0;">2</div>
+    <div style="flex:1; background:#f0f4f8; padding:12px 16px; border-radius:8px;">
+      <strong>松开鼠标</strong>
+      <p style="margin:4px 0 0; font-size:13px; color:#555;">触发 300ms debounce 计时器</p>
+    </div>
+    <div style="width:60px; text-align:center; font-size:20px; color:#888;">→</div>
+  </div>
+
+  <div style="display:flex; align-items:center; gap:16px;">
+    <div style="background:#FF7D00; color:#fff; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; flex-shrink:0;">3</div>
+    <div style="flex:1; background:#fff4e6; padding:12px 16px; border-radius:8px; border:2px solid #FF7D00;">
+      <strong>等待 300ms（debounce）</strong>
+      <p style="margin:4px 0 0; font-size:13px; color:#555;">如果用户继续拖动，重置计时器，不发请求</p>
+    </div>
+    <div style="width:60px; text-align:center; font-size:20px; color:#888;">→</div>
+  </div>
+
+  <div style="display:flex; align-items:center; gap:16px;">
+    <div style="background:#0A84B4; color:#fff; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; flex-shrink:0;">4</div>
+    <div style="flex:1; background:#f0f4f8; padding:12px 16px; border-radius:8px;">
+      <strong>调用冲突检测 API</strong>
+      <p style="margin:4px 0 0; font-size:13px; color:#555;">POST /api/v1/schedule/check-conflict</p>
+    </div>
+    <div style="width:60px; text-align:center; font-size:20px; color:#888;">→</div>
+  </div>
+
+  <div style="display:flex; align-items:center; gap:16px;">
+    <div style="background:#0A84B4; color:#fff; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; flex-shrink:0;">5</div>
+    <div style="flex:1; background:#f0f4f8; padding:12px 16px; border-radius:8px;">
+      <strong>结果展示</strong>
+      <p style="margin:4px 0 0; font-size:13px; color:#555;">无冲突：绿色提示 / 有冲突：红色高亮 + 冲突原因 + 替代方案</p>
+    </div>
+    <div style="width:60px; text-align:center; font-size:20px; color:#888;">✓</div>
+  </div>
+
+</div>
+</div>
+
+<div class="section">
+<h3>冲突结果展示示意</h3>
+<div class="mockup">
+<div class="mockup-header">日历冲突高亮示例</div>
+<div class="mockup-body" style="font-size:13px;">
+  <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px;">
+    <div style="background:#00B42A; color:#fff; padding:6px 12px; border-radius:4px; font-size:12px;">✓ 无冲突</div>
+    <div style="background:#F53F3F; color:#fff; padding:6px 12px; border-radius:4px; font-size:12px;">✗ 冲突</div>
+  </div>
+
+  <div style="border:1px solid #ddd; border-radius:6px; overflow:hidden;">
+    <div style="background:#f7f8fa; padding:8px 12px; font-size:12px; color:#666;">周一 第3节</div>
+    <div style="padding:12px; display:flex; gap:8px; align-items:stretch;">
+      <div style="flex:1; border:2px solid #F53F3F; border-radius:4px; padding:8px; background:#fff5f5;">
+        <strong style="color:#F53F3F; font-size:12px;">✗ 数学（李老师）</strong>
+        <p style="margin:4px 0 0; font-size:11px; color:#666;">与初二(1)班 物理 冲突</p>
+        <p style="margin:2px 0 0; font-size:11px; color:#0A84B4;">建议: 周一第4节 / 周二第3节</p>
+      </div>
+      <div style="flex:1; border:1px solid #00B42A; border-radius:4px; padding:8px; background:#f0fff4;">
+        <strong style="color:#00B42A; font-size:12px;">✓ 语文（王老师）</strong>
+        <p style="margin:4px 0 0; font-size:11px; color:#666;">无冲突</p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="section">
+<p class="label">确认问题</p>
+<p>这个交互流程是否符合你的预期？冲突结果展示（红色高亮+替代方案）是否需要调整？</p>
+</div>
